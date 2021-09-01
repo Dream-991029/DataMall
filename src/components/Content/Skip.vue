@@ -3,20 +3,16 @@
     <div class="skip-box">
       <div class="skip-head">
         <div class="skip-head-left scale-img">
-          <img :src="detailsInfo.icon_file_path" alt="" class="icon-img">
+          <img :src="detailsInfo.icon_file_path" alt="" class="icon-img" />
         </div>
         <div class="skip-head-right">
           <div class="head-right-one">
             {{ detailsInfo.title }}
           </div>
-          <div class="head-right-two">
-            数量: {{ detailsInfo.count }}
-          </div>
-          <div class="head-right-three">
-            大小: {{ detailsInfo.size }}
-          </div>
+          <div class="head-right-two">数量: {{ detailsInfo.count }}</div>
+          <div class="head-right-three">大小: {{ detailsInfo.size }}</div>
           <div class="head-right-btn">
-            <el-button @click="getDownLoad(detailsInfo.id)">下载示例</el-button>
+            <el-button @click="getDownLoad(detailsInfo.id, detailsInfo.title)">下载示例</el-button>
           </div>
           <!--                    <div class="head-right-three">-->
           <!--                        <div class="head-right-three-1">-->
@@ -44,18 +40,27 @@
     </div>
     <!--购物车弹框-->
     <el-dialog
-        class="dialog"
-        :visible.sync="dialogVisible"
-        width="54%"
-        :append-to-body="true"
-        :modal-append-to-body="false"
+      class="dialog"
+      :visible.sync="dialogVisible"
+      width="54%"
+      :append-to-body="true"
+      :modal-append-to-body="false"
     >
       <template slot="title">
-        <div style="font-size: 20px;font-weight: 700;text-align:center;color: #606266">购物车</div>
+        <div
+          style="
+            font-size: 20px;
+            font-weight: 700;
+            text-align: center;
+            color: #606266;
+          "
+        >
+          购物车
+        </div>
       </template>
-      <div style="height: 350px;position: relative">
+      <div style="height: 350px; position: relative">
         <div class="box-tan-1">
-          <svg style="width: 30px;height: 30px;color: #606266">
+          <svg style="width: 30px; height: 30px; color: #606266">
             <use xlink:href="#icon-duihao"></use>
           </svg>
         </div>
@@ -63,33 +68,35 @@
         <div class="box-tan-shan" v-if="list.length">
           <table class="box-tan-shan">
             <thead>
-            <tr>
-              <th style="width:30px">序号</th>
-              <th>商品图标</th>
-              <th>商品名称</th>
-              <th>商品价格</th>
-              <th>商品数量</th>
-              <th style="margin-left:500px">操作</th>
-            </tr>
+              <tr>
+                <th style="width: 30px">序号</th>
+                <th>商品图标</th>
+                <th>商品名称</th>
+                <th>商品价格</th>
+                <th>商品数量</th>
+                <th style="margin-left: 500px">操作</th>
+              </tr>
             </thead>
             <tbody>
-            <tr v-for="(item,index) in list" :key="index">
-              <td style="text-align: center">{{ item.id }}</td>
-              <td style="text-align: center">{{ item.picture }}</td>
-              <td style="text-align: center">{{ item.name }}</td>
-              <td style="text-align: center">{{ item.price }}</td>
-              <td style="text-align: center">
-                <button
+              <tr v-for="(item, index) in list" :key="index">
+                <td style="text-align: center">{{ item.id }}</td>
+                <td style="text-align: center">{{ item.picture }}</td>
+                <td style="text-align: center">{{ item.name }}</td>
+                <td style="text-align: center">{{ item.price }}</td>
+                <td style="text-align: center">
+                  <button
                     @click="decrement(index)"
-                    :disabled="item.count === 1">-
-                </button>
-                {{ item.count }}
-                <button @click="increment(index)">+</button>
-              </td>
-              <td style="text-align: center">
-                <button @click="btnRemoveClick(index)">移除</button>
-              </td>
-            </tr>
+                    :disabled="item.count === 1"
+                  >
+                    -
+                  </button>
+                  {{ item.count }}
+                  <button @click="increment(index)">+</button>
+                </td>
+                <td style="text-align: center">
+                  <button @click="btnRemoveClick(index)">移除</button>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -98,7 +105,9 @@
           <el-divider></el-divider>
         </div>
         <div class="box-tan-price">
-          <div class="box-tan-price-1">总价:￥<span>{{ totalPrice }}</span></div>
+          <div class="box-tan-price-1">
+            总价:￥<span>{{ totalPrice }}</span>
+          </div>
         </div>
         <div class="box-tan-btn">
           <div class="box-tan-btn-1">查看购物车</div>
@@ -108,11 +117,11 @@
       </div>
     </el-dialog>
   </div>
-
 </template>
 
 <script>
 import Content from "@/components/Content/Content";
+import { exportMethod } from '../../main'
 
 export default {
   name: "Skip",
@@ -160,15 +169,37 @@ export default {
     btnRemoveClick(index) {
       this.list.splice(index, 1);
     },
-    getDownLoad(id){
+    getDownLoad(id, title){
       this.axios({
-        method:'get',
-        url:'/datamall/download/',
-        params:{id:id},
+        method: 'get',
+        url: '/datamall/download/',
+        params: {id:id},
+        // 这个响应类型必须设置
+        responseType: 'arraybuffer' 
       }).then(res=>{
-        if(res.data.status === 200 ){
-          
-        }
+        // 创建blob对象, 设置文件类型
+        let blob = new Blob([res.data], {
+          type: 'application/octet-stream'
+        })
+        let reg = /.*?"(.*)"$/g
+        let file_name = decodeURI(reg.exec(res.headers['content-disposition'])[1])
+        // console.log(res.headers['content-disposition'].substring())
+        // 创建a标签
+        const link = document.createElement('a')
+        // 设置a样式为none
+        link.style.display = 'none';
+        // 定义a标签url
+        link.href = URL.createObjectURL(blob)
+        // 自定义文件名
+        link.download = file_name
+        // 挂载a标签
+        document.body.appendChild(link)
+        // 模拟点击
+        link.click()
+        // 释放内存
+        URL.revokeObjectURL(link.href)
+        // 取消挂载a标签
+        document.body.removeChild(link)
       })
     }
   },
@@ -226,7 +257,7 @@ export default {
   float: left;
   margin-left: 70px;
   margin-top: 50px;
-  transition: .5s all linear;
+  transition: 0.5s all linear;
 }
 
 .scale-img:hover img {
@@ -365,7 +396,9 @@ h2 {
   float: left;
 }
 
-.box-tan-btn-1, .box-tan-btn-2, .box-tan-btn-3 {
+.box-tan-btn-1,
+.box-tan-btn-2,
+.box-tan-btn-3 {
   width: 150px;
   height: 30px;
   float: left;

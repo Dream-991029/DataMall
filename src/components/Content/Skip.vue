@@ -12,7 +12,7 @@
           <div class="head-right-two">数量: {{ detailsInfo.count }}</div>
           <div class="head-right-three">大小: {{ detailsInfo.size }}</div>
           <div class="head-right-btn">
-            <el-button @click="getDownLoad(detailsInfo.id, detailsInfo.title)">下载示例</el-button>
+            <el-button @click="getDownLoad(detailsInfo.id)">下载示例</el-button>
           </div>
           <!--                    <div class="head-right-three">-->
           <!--                        <div class="head-right-three-1">-->
@@ -169,7 +169,7 @@ export default {
     btnRemoveClick(index) {
       this.list.splice(index, 1);
     },
-    getDownLoad(id, title){
+    getDownLoad(id){
       this.axios({
         method: 'get',
         url: '/datamall/download/',
@@ -183,7 +183,6 @@ export default {
         })
         let reg = /.*?"(.*)"$/g
         let file_name = decodeURI(reg.exec(res.headers['content-disposition'])[1])
-        // console.log(res.headers['content-disposition'].substring())
         // 创建a标签
         const link = document.createElement('a')
         // 设置a样式为none
